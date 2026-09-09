@@ -1,0 +1,86 @@
+/* =============================================================================
+   Design tokens — ExoG8
+   Premise: the page is an instrument panel for the device. Structure is drawn
+   with hairlines and tick marks rather than shadows; purple is reserved for one
+   meaning only — the assist state, the moment torque is actually delivered.
+   ========================================================================== */
+
+:root {
+  /* --- Ground ------------------------------------------------------------ */
+  --bg:            #08080a;
+  --bg-raise:      #0d0d11;
+  --bg-panel:      #121217;
+  --bg-inset:      #17171d;
+
+  /* --- Ink --------------------------------------------------------------- */
+  /* Four tiers, all of which clear WCAG AA on --bg at body size:
+     ink 18:1 · dim 8.6:1 · mute 6:1 · faint 5.2:1. The hierarchy is
+     carried mostly by size, weight and sans-vs-mono, so the greys can stay
+     close together and still legible. */
+  --ink:           #f3f3f6;
+  --ink-dim:       #adadbb;
+  --ink-mute:      #8c8c9c;
+  --ink-faint:     #82828f;
+
+  /* --- Structure --------------------------------------------------------- */
+  --line:          rgba(255, 255, 255, 0.09);
+  --line-strong:   rgba(255, 255, 255, 0.17);
+  --line-faint:    rgba(255, 255, 255, 0.045);
+
+  /* --- Accent: assist state, and nothing else ---------------------------- */
+  --acc:           #a87bff;   /* 6.5:1 on --bg — safe for text and hairlines */
+  --acc-core:      #6d3bf5;   /* solid fills; white text clears AA          */
+  --acc-deep:      #1d0f3d;
+  --acc-wash:      rgba(168, 123, 255, 0.12);
+  --acc-line:      rgba(168, 123, 255, 0.38);
+
+  /* --- Signal colours used by the timing strip --------------------------- */
+  --sig-late:      #6e6e7e;
+  --sig-mid:       #8d8d9d;
+
+  /* --- Type -------------------------------------------------------------- */
+  --font: 'Blinker', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --mono: ui-monospace, 'SFMono-Regular', 'JetBrains Mono', 'Menlo', 'Consolas', monospace;
+
+  --t-display: clamp(2.6rem, 5.5vw, 5.1rem);
+  --t-h2:      clamp(1.9rem, 3.5vw, 3.05rem);
+  --t-h3:      clamp(1.25rem, 1.7vw, 1.6rem);
+  --t-lede:    clamp(1.02rem, 1.32vw, 1.24rem);
+  --t-body:    1rem;
+  --t-small:   0.875rem;
+  --t-micro:   0.6875rem;
+
+  /* --- Rhythm ------------------------------------------------------------ */
+  --gutter:    clamp(1.25rem, 4.2vw, 4.5rem);
+  --shelf:     clamp(5rem, 11vh, 9rem);   /* vertical space between sections */
+  --measure:   62ch;
+  --max:       1560px;
+  --rail:      clamp(0px, 8vw, 124px);    /* left annotation rail            */
+
+  /* --- Motion ------------------------------------------------------------ */
+  --ease:      cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in:   cubic-bezier(0.55, 0, 0.45, 1);
+  --fast:      160ms;
+  --mid:       420ms;
+  --slow:      900ms;
+
+  --radius:    3px;   /* machined edges, not pillows */
+  --radius-lg: 5px;
+}
+
+/* Motion is decoration here, never information. */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --fast: 1ms;
+    --mid: 1ms;
+    --slow: 1ms;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+    scroll-behavior: auto !important;
+  }
+}

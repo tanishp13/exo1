@@ -1,0 +1,419 @@
+/* =============================================================================
+   Stage (fixed WebGL layer), hotspot markers, and the explorer section.
+   ========================================================================== */
+
+.stage {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 500ms var(--ease);
+}
+
+.stage.is-live { opacity: 1; }
+
+.stage__canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* Markers ride above the content layer; only the dots take pointer events. */
+.hotspot-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 400ms var(--ease), visibility 0s linear 400ms;
+}
+
+.hotspot-layer.is-live {
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 400ms var(--ease), visibility 0s;
+}
+
+/* --- Loader -------------------------------------------------------------- */
+
+.stage__status {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.8rem;
+  transition: opacity var(--mid) var(--ease);
+}
+
+.stage__status[hidden] { display: none; }
+
+.stage__bar {
+  display: block;
+  width: 140px;
+  height: 1px;
+  background: var(--line-strong);
+}
+
+.stage__bar-fill {
+  display: block;
+  width: 0;
+  height: 100%;
+  background: var(--acc);
+  transition: width 220ms linear;
+}
+
+/* --- Hotspot markers ----------------------------------------------------- */
+
+.hs {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: block;
+  padding: 0;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  pointer-events: auto;
+  will-change: transform;
+  transition: opacity 220ms var(--ease);
+}
+
+.hotspot-layer:not(.is-live) .hs { pointer-events: none; }
+
+.hs__ring,
+.hs__core {
+  position: absolute;
+  left: 0;
+  top: 0;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.hs__ring {
+  width: 26px;
+  height: 26px;
+  border: 1px solid var(--line-strong);
+  transition: width 260ms var(--ease), height 260ms var(--ease),
+              border-color 260ms var(--ease), background 260ms var(--ease);
+}
+
+.hs__core {
+  width: 6px;
+  height: 6px;
+  background: var(--ink);
+  transition: background 260ms var(--ease), width 260ms var(--ease), height 260ms var(--ease);
+}
+
+.hs__label {
+  position: absolute;
+  left: 26px;
+  top: -0.95em;
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  padding: 0.3em 0.55em;
+  white-space: nowrap;
+  font-family: var(--mono);
+  font-size: var(--t-micro);
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+  background: rgba(8, 8, 10, 0.78);
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  backdrop-filter: blur(6px);
+  transition: border-color 260ms var(--ease), color 260ms var(--ease);
+}
+
+/* Leader line from the dot to the label. */
+.hs__label::before {
+  content: '';
+  position: absolute;
+  right: 100%;
+  top: 0.92em;
+  width: 12px;
+  height: 1px;
+  margin-right: 6px;
+  background: var(--line-strong);
+  transition: background 260ms var(--ease);
+}
+
+.hs__label b { font-weight: 600; color: var(--ink); }
+
+.hs__label i {
+  font-style: normal;
+  max-width: 0;
+  overflow: hidden;
+  opacity: 0;
+  transition: max-width 320ms var(--ease), opacity 220ms var(--ease);
+}
+
+.hs:hover .hs__ring,
+.hs:focus-visible .hs__ring { width: 34px; height: 34px; border-color: var(--acc-line); }
+
+.hs:hover .hs__label i,
+.hs:focus-visible .hs__label i,
+.hs.is-active .hs__label i { max-width: 20rem; opacity: 1; }
+
+.hs.is-active .hs__ring {
+  width: 38px;
+  height: 38px;
+  border-color: var(--acc);
+  background: var(--acc-wash);
+}
+
+.hs.is-active .hs__core { background: var(--acc); width: 8px; height: 8px; }
+.hs.is-active .hs__label::before { background: var(--acc-line); }
+
+.hs.is-active .hs__label {
+  color: var(--ink);
+  border-color: var(--acc-line);
+}
+
+/* Behind geometry, or another marker is selected. */
+.hs.is-occluded { opacity: 0.4; }
+.hs.is-dimmed   { opacity: 0.5; }
+
+/* Flip the label to the left when the dot sits near the right edge. */
+.hs.is-flipped .hs__label {
+  left: auto;
+  right: 26px;
+  flex-direction: row-reverse;
+}
+
+.hs.is-flipped .hs__label::before {
+  right: auto;
+  left: 100%;
+  margin-right: 0;
+  margin-left: 6px;
+}
+
+/* =============================================================================
+   Explorer section
+   ========================================================================== */
+
+.explorer {
+  position: relative;
+  z-index: 1;
+  background: transparent;
+}
+
+.explorer__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 0.88fr) minmax(0, 1.12fr);
+  gap: clamp(2rem, 4vw, 4rem);
+  align-items: start;
+}
+
+.explorer__bay {
+  position: relative;
+  aspect-ratio: 3 / 4;
+  max-height: 78vh;
+  position: sticky;
+  top: 96px;
+}
+
+/* The live bay doubles as the orbit surface: it sits exactly over the render
+   area, so dragging inside the frame does what it looks like it should. */
+.bay--live {
+  border-color: var(--line);
+  cursor: grab;
+  touch-action: pan-y;
+}
+
+.bay--live.is-dragging { cursor: grabbing; }
+
+.bay__toolbar {
+  position: absolute;
+  inset: auto 1rem 0.9rem 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.bay__toolbar .bay__label { position: static; color: var(--ink-dim); }
+
+.bay__reset {
+  pointer-events: auto;
+  background: none;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+  padding: 0.4em 0.85em;
+  font-family: var(--mono);
+  font-size: var(--t-micro);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+  cursor: pointer;
+  transition: color var(--fast) var(--ease), border-color var(--fast) var(--ease);
+}
+
+.bay__reset:hover { color: var(--ink); border-color: var(--acc-line); }
+
+/* --- Parts list ---------------------------------------------------------- */
+
+.parts { border-top: 1px solid var(--line); }
+
+.part {
+  display: grid;
+  grid-template-columns: 4.25rem minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0 1rem;
+  width: 100%;
+  padding: 1.05rem 1rem 1.05rem 0;
+  background: none;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  border-left: 2px solid transparent;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color var(--fast) var(--ease), background var(--fast) var(--ease),
+              padding-left var(--fast) var(--ease);
+}
+
+.part:hover { background: rgba(255, 255, 255, 0.022); padding-left: 0.7rem; }
+
+.part[aria-selected='true'] {
+  border-left-color: var(--acc);
+  background: var(--acc-wash);
+  padding-left: 0.7rem;
+}
+
+.part__ref {
+  font-family: var(--mono);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--ink-faint);
+  transition: color var(--fast) var(--ease);
+}
+
+.part:hover .part__ref { color: var(--ink-dim); }
+.part[aria-selected='true'] .part__ref { color: var(--acc); }
+
+.part__name {
+  font-size: 0.9375rem;
+  font-weight: 400;
+  color: var(--ink-dim);
+  line-height: 1.3;
+  transition: color var(--fast) var(--ease);
+}
+
+.part:hover .part__name,
+.part[aria-selected='true'] .part__name { color: var(--ink); }
+
+.part__layer {
+  font-family: var(--mono);
+  font-size: var(--t-micro);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+
+/* --- Readout ------------------------------------------------------------- */
+
+.readout {
+  margin-top: clamp(1.75rem, 3vw, 2.5rem);
+  padding: clamp(1.25rem, 2vw, 1.75rem);
+  background: var(--bg-panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+}
+
+.readout__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-bottom: 0.9rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.readout__ref {
+  font-family: var(--mono);
+  font-size: 1.85rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--acc);
+  line-height: 1;
+}
+
+.readout__name {
+  font-size: 1.0625rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  margin-top: 0.55rem;
+}
+
+.readout__body {
+  margin: 1rem 0 1.25rem;
+  font-size: 0.9375rem;
+  font-weight: 300;
+  line-height: 1.55;
+  color: var(--ink-dim);
+}
+
+.readout__specs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1px;
+  background: var(--line);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.readout__spec {
+  padding: 0.8rem 0.9rem;
+  background: var(--bg-inset);
+}
+
+.readout__spec dt {
+  font-family: var(--mono);
+  font-size: var(--t-micro);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin-bottom: 0.45em;
+}
+
+.readout__spec dd {
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--ink);
+  line-height: 1.3;
+}
+
+/* Fade the panel while the camera is in flight so content never lags the view. */
+.readout.is-swapping { opacity: 0; transform: translateY(6px); }
+
+.readout {
+  transition: opacity 220ms var(--ease), transform 220ms var(--ease);
+}
+
+@media (max-width: 1000px) {
+  .explorer__grid { grid-template-columns: minmax(0, 1fr); }
+
+  .explorer__bay {
+    order: -1;
+    position: relative;
+    top: auto;
+    aspect-ratio: 1 / 1;
+    max-height: 62vh;
+  }
+
+  .hs__label i { display: none; }
+}
+
+@media (max-width: 520px) {
+  .part { grid-template-columns: 3.5rem minmax(0, 1fr); }
+  .part__layer { grid-column: 2; margin-top: 0.35rem; }
+  .readout__specs { grid-template-columns: minmax(0, 1fr); }
+}

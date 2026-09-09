@@ -1,0 +1,272 @@
+/* =============================================================================
+   Hero — asymmetric: copy left, instrument bay right.
+   The bay is an empty frame; the fixed WebGL canvas is offset to land inside it.
+   ========================================================================== */
+
+.hero {
+  position: relative;
+  z-index: 1;
+  min-height: 100svh;
+  display: flex;
+  align-items: center;
+  padding-block: calc(74px + clamp(2rem, 7vh, 5rem)) clamp(4rem, 10vh, 7rem);
+  background: transparent;
+}
+
+/* A faint measurement grid, sized to the layout rail rather than arbitrary. */
+.hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(to right, var(--line-faint) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--line-faint) 1px, transparent 1px);
+  background-size: clamp(72px, 8vw, 132px) clamp(72px, 8vw, 132px);
+  mask-image: radial-gradient(120% 90% at 50% 40%, #000 0%, transparent 78%);
+}
+
+.hero__grid {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1.12fr) minmax(0, 0.88fr);
+  gap: clamp(2rem, 5vw, 5rem);
+  align-items: center;
+  width: 100%;
+}
+
+.hero__copy { max-width: 44rem; }
+
+/* --- Kicker -------------------------------------------------------------- */
+
+.hero__kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
+  color: var(--ink-dim);
+  margin-bottom: clamp(1.25rem, 3vh, 2rem);
+}
+
+.hero__kicker-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--acc);
+  box-shadow: 0 0 0 0 var(--acc-line);
+  animation: pulse 2.8s var(--ease) infinite;
+}
+
+@keyframes pulse {
+  0%, 70%, 100% { box-shadow: 0 0 0 0 rgba(168, 123, 255, 0.5); }
+  35%           { box-shadow: 0 0 0 7px rgba(168, 123, 255, 0); }
+}
+
+/* --- Title --------------------------------------------------------------- */
+
+.hero__title { margin-bottom: clamp(1.35rem, 3vh, 2rem); }
+
+.hero__title-em {
+  position: relative;
+  display: inline-block;
+  color: var(--ink);
+}
+
+/* The word carries a rule the width of the latency window it refers to. */
+.hero__title-em::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: -0.04em;
+  width: 100%;
+  height: 3px;
+  background: linear-gradient(90deg, var(--acc-core) 0%, var(--acc) 62%, transparent 100%);
+  transform-origin: left;
+  animation: sweep 1.4s var(--ease) 0.35s both;
+}
+
+@keyframes sweep {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
+}
+
+.hero__lede { margin-bottom: clamp(1.75rem, 4vh, 2.5rem); }
+
+.hero__lede strong {
+  color: var(--ink);
+  font-weight: 600;
+  font-family: var(--mono);
+  font-size: 0.94em;
+}
+
+.hero__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: clamp(2.5rem, 6vh, 4rem);
+}
+
+/* --- Stat strip ---------------------------------------------------------- */
+
+.hero__stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0;
+  border-top: 1px solid var(--line);
+}
+
+.hero__stat {
+  padding: 1.1rem 1.1rem 0 0;
+  border-right: 1px solid var(--line);
+}
+
+.hero__stat:last-child { border-right: 0; }
+.hero__stat + .hero__stat { padding-left: 1.1rem; }
+
+.hero__stat dt {
+  font-family: var(--mono);
+  font-size: clamp(1.15rem, 2.1vw, 1.6rem);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  line-height: 1.1;
+}
+
+.hero__stat dt span {
+  display: block;
+  font-size: var(--t-micro);
+  font-weight: 400;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--acc);
+  margin-top: 0.5em;
+}
+
+.hero__stat dd {
+  margin: 0.75rem 0 0;
+  font-size: 0.8125rem;
+  font-weight: 300;
+  line-height: 1.45;
+  color: var(--ink-mute);
+}
+
+/* --- Bay ----------------------------------------------------------------- */
+
+.hero__bay {
+  position: relative;
+  aspect-ratio: 4 / 5;
+  max-height: 74vh;
+  justify-self: end;
+  width: 100%;
+}
+
+/* The framing device used wherever the model appears: corner ticks + labels,
+   never a filled card. */
+.bay {
+  position: absolute;
+  inset: 0;
+  border: 1px solid var(--line-faint);
+  border-radius: var(--radius-lg);
+}
+
+.bay__tick {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  border-color: var(--line-strong);
+  border-style: solid;
+  border-width: 0;
+}
+
+.bay__tick--tl { top: -1px; left: -1px;  border-top-width: 1px; border-left-width: 1px; }
+.bay__tick--tr { top: -1px; right: -1px; border-top-width: 1px; border-right-width: 1px; }
+.bay__tick--bl { bottom: -1px; left: -1px;  border-bottom-width: 1px; border-left-width: 1px; }
+.bay__tick--br { bottom: -1px; right: -1px; border-bottom-width: 1px; border-right-width: 1px; }
+
+.bay__label,
+.bay__hint {
+  position: absolute;
+  bottom: 0.9rem;
+  color: var(--ink-faint);
+  margin: 0;
+}
+
+.bay__label { left: 1rem; }
+.bay__hint  { right: 1rem; }
+
+/* Below the two-column layout the frame is too narrow for both captions;
+   the identifier is the one worth keeping. */
+@media (max-width: 720px) {
+  .bay__hint { display: none; }
+  .bay__label { font-size: 0.625rem; letter-spacing: 0.1em; }
+}
+
+/* --- Scroll cue ---------------------------------------------------------- */
+
+.hero__scroll {
+  position: absolute;
+  left: var(--gutter);
+  bottom: clamp(1.25rem, 4vh, 2.25rem);
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  color: var(--ink-faint);
+  transition: color var(--fast) var(--ease);
+}
+
+.hero__scroll:hover { color: var(--ink-dim); }
+
+.hero__scroll-rail {
+  display: block;
+  width: 58px;
+  height: 1px;
+  background: var(--line-strong);
+  overflow: hidden;
+}
+
+.hero__scroll-rail i {
+  display: block;
+  width: 30%;
+  height: 100%;
+  background: var(--acc);
+  animation: travel 2.6s var(--ease-in) infinite;
+}
+
+@keyframes travel {
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX(340%); }
+}
+
+/* --- Narrow -------------------------------------------------------------- */
+
+@media (max-width: 1000px) {
+  .hero { min-height: auto; }
+
+  .hero__grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: clamp(2.5rem, 6vw, 4rem);
+  }
+
+  .hero__copy { max-width: none; order: 2; }
+
+  .hero__bay {
+    order: 1;
+    aspect-ratio: 5 / 4;
+    max-height: 46vh;
+    justify-self: stretch;
+  }
+
+  .hero__scroll { display: none; }
+}
+
+@media (max-width: 560px) {
+  .hero__stats { grid-template-columns: minmax(0, 1fr); }
+
+  .hero__stat {
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+    padding: 1rem 0;
+  }
+
+  .hero__stat + .hero__stat { padding-left: 0; }
+  .hero__stat:last-child { border-bottom: 0; }
+}

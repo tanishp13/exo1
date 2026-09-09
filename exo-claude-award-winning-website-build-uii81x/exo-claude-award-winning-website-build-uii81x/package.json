@@ -1,0 +1,18 @@
+{
+  "name": "exog8-site",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "ExoG8 / ExoGait — single-page site for the bilateral wearable mechatronic knee-offloading sleeve.",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview --port 4173"
+  },
+  "dependencies": {
+    "three": "^0.185.1"
+  },
+  "devDependencies": {
+    "vite": "^7.1.7"
+  }
+}

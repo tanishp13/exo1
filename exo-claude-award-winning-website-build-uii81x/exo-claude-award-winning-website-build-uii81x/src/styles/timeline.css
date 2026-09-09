@@ -1,0 +1,139 @@
+/* =============================================================================
+   Timeline — a horizontal rail whose fill is driven by scroll position.
+   Four milestones; no cards, no icons, just the rail and the type.
+   ========================================================================== */
+
+.tl { background: var(--bg); z-index: 2; }
+
+.tl__track { position: relative; }
+
+.tl__rail {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 7px;
+  height: 1px;
+  background: var(--line);
+}
+
+.tl__rail-fill {
+  display: block;
+  width: 0;
+  height: 100%;
+  background: linear-gradient(90deg, var(--acc-core), var(--acc));
+  transition: width 120ms linear;
+}
+
+.tl__items {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: clamp(1rem, 2.5vw, 2.5rem);
+}
+
+.tl__item {
+  position: relative;
+  padding-top: 2.75rem;
+}
+
+/* Node on the rail. */
+.tl__item::before {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 0;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--bg);
+  border: 1px solid var(--line-strong);
+  transition: background var(--mid) var(--ease), border-color var(--mid) var(--ease),
+              box-shadow var(--mid) var(--ease);
+}
+
+.tl__item.is-reached::before { border-color: var(--acc); background: var(--acc); }
+.tl__item[data-state='active']::before { box-shadow: 0 0 0 5px var(--acc-wash); }
+
+.tl__tag {
+  position: absolute;
+  top: 0.05rem;
+  left: 1.35rem;
+  font-family: var(--mono);
+  font-size: var(--t-micro);
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  transition: color var(--mid) var(--ease);
+}
+
+.tl__item.is-reached .tl__tag { color: var(--acc); }
+
+.tl__title {
+  font-size: clamp(1.05rem, 1.5vw, 1.3rem);
+  font-weight: 600;
+  letter-spacing: -0.018em;
+  line-height: 1.15;
+  color: var(--ink-mute);
+  transition: color var(--mid) var(--ease);
+}
+
+.tl__item.is-reached .tl__title { color: var(--ink); }
+
+.tl__body {
+  margin-top: 0.8rem;
+  font-size: 0.875rem;
+  font-weight: 300;
+  line-height: 1.55;
+  color: var(--ink-mute);
+}
+
+.tl__facets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 1.1rem;
+}
+
+.tl__facet {
+  padding: 0.28em 0.65em;
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  font-family: var(--mono);
+  font-size: var(--t-micro);
+  letter-spacing: 0.08em;
+  color: var(--ink-faint);
+}
+
+.tl__state {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 0.9rem;
+  font-family: var(--mono);
+  font-size: var(--t-micro);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+
+.tl__state i {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.tl__item[data-state='done'] .tl__state   { color: var(--ink-mute); }
+.tl__item[data-state='active'] .tl__state { color: var(--acc); }
+
+@media (max-width: 900px) {
+  .tl__rail { left: 4px; right: auto; top: 0; bottom: 0; width: 1px; height: auto; }
+  .tl__rail-fill { width: 100%; height: 0; transition: height 120ms linear; }
+
+  .tl__items { grid-template-columns: minmax(0, 1fr); gap: 0; }
+
+  .tl__item { padding: 0 0 2.5rem 2.25rem; }
+  .tl__item:last-child { padding-bottom: 0; }
+  .tl__item::before { top: 0.35rem; left: 0; }
+  .tl__tag { position: static; display: block; margin-bottom: 0.5rem; }
+}
