@@ -28,12 +28,11 @@ export const HOTSPOTS = [
     group: 'shared_subsystems',
     layer: 'Structure',
     lede:
-      'A 6S2P lithium-ion hub rides on the pelvic belt (108), which is the primary reaction ' +
-      'structure: every newton the system pulls is reacted into the skeletal pelvis, not into soft tissue.',
+      'A rechargable battery pack present with a hook or a pelvic belt that can be anchored to the users waist or harness ' +
+      'structure: to distribute mass centrally and reduce distal limb inertia during movement.',
     specs: [
-      ['Cell pack', '6S2P · 18650'],
-      ['Protection', 'BMS 6S / 20 A'],
-      ['Isolation', 'XT60 master cut-off'],
+      ['Cell pack', 'Rechargable battery'],
+      ['Protection', 'Against overcharge, over-discharge, overcurrent, short circuit, cell imbalance and thermal excursion'],
       ['Load path', 'Pelvis, not soft tissue'],
     ],
     view: { dir: [0.35, 0.3, 1], dist: 1.9 },
@@ -62,13 +61,12 @@ export const HOTSPOTS = [
     group: 'R_semg_assembly_104',
     layer: 'Sensing',
     lede:
-      'A self-adhesive differential pair sits over the knee-extensor muscle belly. Surface EMG ' +
-      'onset precedes measurable force by around 50 ms — that gap is the window the whole device lives in.',
+      'A non-invasive differential pair sits over the knee-extensor muscle. Surface EMG ' +
+      'onset precedes measurable force by around 50 ms.',
     specs: [
       ['Signal', 'Surface EMG envelope'],
       ['Site', 'Vastus lateralis / rectus femoris'],
       ['Reference', 'Quiescent bony landmark'],
-      ['Lead on force', '≈ 50 ms'],
     ],
     view: { dir: [0.6, 0.1, 0.9], dist: 4.2 },
   },
@@ -79,13 +77,9 @@ export const HOTSPOTS = [
     group: 'R_R_leg_module',
     layer: 'Actuation',
     lede:
-      'Controller, drive stage and actuator (109) in one hip-height box. A bevel pair (110) turns the ' +
-      'motor axis through 90° so the housing lies flat against the thigh instead of standing off it.',
+      'Controller, drive stage and actuator in one hip-height box. housing lies flat against the thigh instead of standing off it.',
     specs: [
-      ['Controller', 'ESP32-S3 · on-device inference'],
-      ['Drive stage', 'BTS7960 H-bridge'],
-      ['Reduction', '25 : 1 gearbox'],
-      ['Angular transfer', 'Bevel pair (110)'],
+      ['Controller', 'On-device inference'],
     ],
     view: { dir: [0.85, 0.15, 0.55], dist: 1.55 },
   },
@@ -96,13 +90,9 @@ export const HOTSPOTS = [
     group: 'R_R_leg_module',
     layer: 'Actuation',
     lede:
-      'The spool (111) winds an inner tension member inside a sheath. It crosses the knee anterior to the ' +
-      'flexion axis, so tension becomes an extension moment — with no rigid linkage spanning the joint.',
+      'The spool winds an inner tension member inside a sheath. It crosses the knee anterior to the ' +
+      'flexion axis, so tension becomes an extension moment with no rigid linkage spanning the joint.',
     specs: [
-      ['Sheave', 'Ø 40 mm'],
-      ['Path', 'Antero-lateral, anterior offset'],
-      ['Efficiency', '≈ 94 % at 90° wrap'],
-      ['Axis alignment required', 'None'],
     ],
     view: { dir: [0.5, 0.05, 1], dist: 4.0 },
   },
@@ -113,13 +103,9 @@ export const HOTSPOTS = [
     group: 'R_R_leg_module',
     layer: 'Safety',
     lede:
-      'The cable terminates on a tibial cuff (107) through an inline load cell and a calibrated ' +
-      'frangible link. It releases on force alone — no firmware, no power, no permission required.',
+      'The cable terminates on a tibial cuff ' +
+      'It releases on force alone no firmware, no power, no permission required.',
     specs: [
-      ['Release', '700 N calibrated'],
-      ['Depends on software', 'No'],
-      ['Instrumentation', 'Inline load cell'],
-      ['Independent safety layers', '7'],
     ],
     view: { dir: [0.55, -0.05, 1], dist: 3.6 },
   },
@@ -132,14 +118,14 @@ export const STEPS = [
     title: 'Wear & calibrate',
     body:
       'Belt, housing, electrode, tibial cuff. The app records a resting baseline and a peak contraction ' +
-      'and sets the activation threshold inside that range — raw EMG voltage is meaningless between bodies.',
+      'and sets the activation threshold inside that range',
     meta: 'Per wearer, per session',
   },
   {
     n: '02',
     title: 'Sense',
     body:
-      'The electrode (104) streams a muscle-activation envelope while the IMU (103) supplies a knee-angle ' +
+      'The electrode streams a muscle-activation envelope while the IMU supplies a knee-angle ' +
       'estimate. Two independent channels, both read proximally, both above the knee.',
     meta: 'sEMG envelope + joint angle',
   },
@@ -155,8 +141,8 @@ export const STEPS = [
     n: '04',
     title: 'Assist',
     body:
-      'The motor (109) winds the spool (111) and the cable pulls anterior to the knee axis. Torque arrives ' +
-      'inside the electromechanical latency window — before the joint has measurably moved.',
+      'The motor winds the spool and the cable pulls anterior to the knee axis. Torque arrives ' +
+      'inside the electromechanical latency window before the joint has measurably moved.',
     meta: 'Pre-motion delivery',
   },
 ];
@@ -210,59 +196,55 @@ export const SAFETY = [
 /** [DECK] slides 3 & 9, [PAT] background. */
 export const CLAIMS = [
   {
-    figure: '2.6–3.5×',
-    unit: 'body weight',
+    figure: 'Natural Movement',
+    unit: 'Soft Exo sleeve',
     body:
-      'Peak tibiofemoral contact force measured in vivo during level walking, stair ascent and stair ' +
-      'descent. Much of it is muscular, not gravitational.',
+      'Supports natural gait movement all the while reducing muscle fatigue and knee joint loading.',
   },
   {
-    figure: '≈ 50',
-    unit: 'milliseconds',
+    figure: 'Sleek design',
+    unit: 'Wearer centric design',
     body:
-      'Reported delay between quadriceps sEMG onset and force onset. ExoG8 spends this interval taking ' +
-      'up transmission slack instead of waiting.',
+      'Compact architechture designed for comfortable wear and everyday use '
   },
   {
-    figure: '0',
-    unit: 'ground-contact sensors',
+    figure: 'Adaptive assistance',
+    unit: 'Real time sensing and control',
     body:
-      'Nothing in a shoe, nothing on the shank. The device is independent of footwear and of the surface ' +
-      'being walked on.',
+      'Dynamic movement detection and response helping reduce patellofemoral stress'
   },
 ];
 
 /** [DECK] slide 10 — roadmap, plus the filing the specification itself evidences. */
 export const MILESTONES = [
   {
-    tag: 'Q2',
+    tag: '1',
     title: 'Ideation',
     state: 'done',
     body: 'Product architecture and core design defined: proximal actuation, Bowden transmission, dual-gate control.',
     facets: ['Architecture', 'Concept of operation'],
   },
   {
-    tag: 'IP',
-    title: 'Complete specification filed',
+    tag: '2',
+    title: 'Published patent',
     state: 'done',
     body:
-      'Form 2 filed under the Patents Act 1970 with VNR VJIET as applicant, covering pre-motion sEMG gating ' +
-      'and Bowden-cable knee offloading.',
-    facets: ['Form 2', 'Claims 1–113 refs'],
+      'Patent publication number - IN202641102311 A1 ',
+    facets: ['Form 2', 'Patent'],
   },
   {
-    tag: 'Q3',
+    tag: '3',
     title: 'Prototype',
     state: 'active',
-    body: 'Building and integrating the functional bilateral prototype — housing, drive train, sensing chain, harness.',
-    facets: ['Bilateral build', 'Bench characterisation'],
+    body: 'Building and integrating the functional bilateral prototype',
+    facets: ['Bilateral build', 'Prototype development'],
   },
   {
-    tag: 'Q4',
+    tag: '4',
     title: 'Validation',
     state: 'next',
     body: 'Test, evaluate and refine on wearers: gating accuracy, assist timing, comfort and endurance over a working shift.',
-    facets: ['Wearer trials', 'Refinement'],
+    facets: ['User testing', 'Refinement'],
   },
 ];
 

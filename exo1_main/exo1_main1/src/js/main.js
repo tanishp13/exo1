@@ -129,11 +129,11 @@ const viewer = createViewer({
 
   onError(err) {
     console.error('[viewer]', err);
-    disableStage('3D view unavailable — the written specification below is unaffected.');
+    disableStage('3D view unavailable the written specification below is unaffected.');
   },
 });
 
-if (!viewer) disableStage('WebGL unavailable — the written specification below is unaffected.');
+if (!viewer) disableStage('WebGL unavailable the written specification below is unaffected.');
 
 // Pausing on a hidden tab keeps the GPU quiet when nobody is looking.
 document.addEventListener('visibilitychange', () => {

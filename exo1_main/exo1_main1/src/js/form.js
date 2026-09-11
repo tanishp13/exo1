@@ -8,14 +8,14 @@
  * client rather than silently pretending to have sent something.
  */
 
-const ENDPOINT = import.meta.env.VITE_FORM_ENDPOINT ?? '';
-const FALLBACK_TO = import.meta.env.VITE_CONTACT_EMAIL ?? 'contact@exog8.in';
+const ENDPOINT = import.meta.env.VITE_FORM_ENDPOINT ?? 'exog8co@gmail.com';
+const FALLBACK_TO = import.meta.env.VITE_CONTACT_EMAIL ?? 'exog8co@gmail.com';
 
 const RULES = {
   name: (v) => (v.trim().length >= 2 ? '' : 'Please enter your name.'),
   email: (v) => (/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v.trim()) ? '' : 'Please enter a valid email address.'),
   role: (v) => (v ? '' : 'Please choose the area you are interested in.'),
-  message: (v) => (v.trim().length >= 12 ? '' : 'A sentence or two, please — at least 12 characters.'),
+  message: (v) => (v.trim().length >= 12 ? '' : 'A sentence or two (at least 12 characters).'),
 };
 
 export function initForm(form) {
@@ -74,7 +74,7 @@ export function initForm(form) {
 
     // Honeypot: a filled hidden field means a bot. Report success, send nothing.
     if (form.elements._gotcha?.value) {
-      setStatus('Thanks — we will be in touch.', 'ok');
+      setStatus('Thanks we will be in touch.', 'ok');
       form.reset();
       return;
     }
@@ -83,7 +83,7 @@ export function initForm(form) {
     const bad = validate();
     if (bad) {
       bad.input.focus();
-      setStatus('Some fields still need attention.', 'error');
+      setStatus('Please fill all required fields.', 'error');
       return;
     }
 
@@ -92,7 +92,7 @@ export function initForm(form) {
       email: form.elements.email.value.trim(),
       role: form.elements.role.value,
       message: form.elements.message.value.trim(),
-      _subject: 'ExoG8 — intake form',
+      _subject: 'ExoG8 interest and enquiry form',
     };
 
     if (!ENDPOINT) {
@@ -121,7 +121,7 @@ export function initForm(form) {
         delete field.input.dataset.touched;
         setError(field, '');
       }
-      setStatus('Received. We read every one of these.', 'ok');
+      setStatus('Received, thank you. We read every one of these.', 'ok');
     } catch (err) {
       console.error('[form]', err);
       setStatus(`Could not send that. Email ${FALLBACK_TO} instead.`, 'error');

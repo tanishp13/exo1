@@ -114,7 +114,7 @@ export function initHotspots({ viewer, items, markersEl, listEl, readoutEl, bayL
       <p class="tag">No part selected</p>
     </div>
     <p class="readout__body">
-      Six markers sit on the assembly. Select one — in the list or on the model — to
+      Six markers sit on the assembly. Select one in the list or on the model to
       focus the camera on that part and read what it does.
     </p>`;
 
