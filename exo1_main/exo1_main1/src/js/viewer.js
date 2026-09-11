@@ -61,19 +61,17 @@ export function createViewer({ canvas, dragSurface, onProgress, onReady, onError
       antialias: true,
       alpha: true,
       powerPreference: 'high-performance',
+      precision: 'mediump', // Standard 32-bit single-precision to bypass ANGLE X4122 warnings
     });
   } catch (err) {
     onError?.(err);
     return null;
   }
 
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.9));
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
   renderer.outputColorSpace = SRGBColorSpace;
   renderer.toneMapping = ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.02;
-  // Clears are issued by hand: the render is scissored to the bay, and an
-  // automatic clear would only wipe inside that box, smearing the frame behind
-  // the model as the bay travels up the page.
   renderer.autoClear = false;
 
   const scene = new Scene();
@@ -149,13 +147,8 @@ export function createViewer({ canvas, dragSurface, onProgress, onReady, onError
 
   /**
    * Distance at which an object fits inside the given viewport-relative box.
-   *
-   * Fitting on the bounding-sphere radius would leave a tall, narrow assembly
-   * looking undersized in its frame — the sphere is sized by the diagonal, not
-   * by what the camera actually has to clear. Height and width are solved
-   * separately instead, and the tighter of the two wins.
    */
-  function distanceToFit(extent, box, margin = 1.08) {
+  function distanceToFit(extent, box, margin = 1.15) {
     const tan = Math.tan(MathUtils.degToRad(camera.fov) / 2);
     const fracH = Math.max(0.12, box.h / window.innerHeight);
     const fracW = Math.max(0.12, (box.w / window.innerWidth) * camera.aspect);
@@ -165,7 +158,6 @@ export function createViewer({ canvas, dragSurface, onProgress, onReady, onError
   // --- Bay registration --------------------------------------------------
 
   let bays = [];
-  /** Viewport-space rect the model is currently rendered into. */
   let bayRect = null;
 
   function collectBays() {
@@ -176,11 +168,7 @@ export function createViewer({ canvas, dragSurface, onProgress, onReady, onError
   }
 
   /**
-   * The bay nearest the centre of the viewport wins.
-   *
-   * The rect is clipped to the viewport before use: a bay that is half below
-   * the fold should frame the model in the half you can actually see, not
-   * centre it on a midpoint somewhere off screen.
+   * Identifies the bay closest to center screen.
    */
   function activeBay() {
     const vw = window.innerWidth;
@@ -204,7 +192,15 @@ export function createViewer({ canvas, dragSurface, onProgress, onReady, onError
       const d = Math.abs((top + bottom) / 2 - mid);
       if (d < bestDist) {
         bestDist = d;
-        best = { name: bay.name, x: (left + right) / 2, y: (top + bottom) / 2, w, h, left, top };
+        best = {
+          name: bay.name,
+          x: (r.left + r.right) / 2,
+          y: (r.top + r.bottom) / 2,
+          w: r.width,
+          h: r.height,
+          left: r.left,
+          top: r.top,
+        };
       }
     }
     return best;
@@ -218,24 +214,26 @@ export function createViewer({ canvas, dragSurface, onProgress, onReady, onError
     if (!bay) return;
     bayRect = bay;
 
-    goal.ndc.set((bay.x / window.innerWidth) * 2 - 1, -((bay.y / window.innerHeight) * 2 - 1));
+    // Shift camera offset so model lands right at the center of the active bay
+    goal.ndc.set(
+      (bay.x / window.innerWidth) * 2 - 1,
+      -((bay.y / window.innerHeight) * 2 - 1)
+    );
 
     if (focus) {
       goal.target.copy(focus.center);
       const a = dirToAngles(focus.view.dir);
       goal.theta = shortestAngle(rig.theta, a.theta);
       goal.phi = MathUtils.clamp(a.phi, MIN_PHI, MAX_PHI);
-      // Clamped at both ends: never so close that the near plane bites, never so
-      // far that "focused" looks the same as the full assembly.
       const r = MathUtils.clamp(
         focus.radius * focus.view.dist,
         0.05,
         modelExtent.y * 0.7,
       );
-      goal.radius = distanceToFit({ y: r, xz: r }, bay, 1.0);
+      goal.radius = distanceToFit({ y: r, xz: r }, bay, 1.05);
     } else {
       goal.target.copy(modelSphere.center);
-      goal.radius = distanceToFit(modelExtent, bay, bay.name === 'hero' ? 1.1 : 1.02);
+      goal.radius = distanceToFit(modelExtent, bay, bay.name === 'hero' ? 1.05 : 1.02);
     }
   }
 
@@ -262,8 +260,7 @@ export function createViewer({ canvas, dragSurface, onProgress, onReady, onError
     rig.ndc.x = damp(rig.ndc.x, goal.ndc.x, DAMP * 1.4, dt);
     rig.ndc.y = damp(rig.ndc.y, goal.ndc.y, DAMP * 1.4, dt);
 
-    // Place the camera on its orbit, then slide camera and target together so
-    // the model projects at the bay's screen position rather than dead centre.
+    // Orbit position
     const sinPhi = Math.sin(rig.phi);
     camera.position.set(
       rig.target.x + rig.radius * sinPhi * Math.sin(rig.theta),
@@ -272,6 +269,7 @@ export function createViewer({ canvas, dragSurface, onProgress, onReady, onError
     );
     camera.lookAt(rig.target);
 
+    // Dynamic viewport pan: shifts the view cleanly into the target bay rect
     const halfH = rig.radius * Math.tan(MathUtils.degToRad(camera.fov) / 2);
     const halfW = halfH * camera.aspect;
     camRight.set(1, 0, 0).applyQuaternion(camera.quaternion);
@@ -282,23 +280,8 @@ export function createViewer({ canvas, dragSurface, onProgress, onReady, onError
     camera.position.add(tmpOffset);
     camera.lookAt(tmpVec.copy(rig.target).add(tmpOffset));
 
-    // Render only inside the bay. Without this, zooming in on a 120 mm housing
-    // throws the rest of the assembly across the copy beside it — the frame has
-    // to be a real window, not a decorative rectangle.
-    renderer.setScissorTest(false);
     renderer.clear();
-    if (bayRect) {
-      const dpr = renderer.getPixelRatio();
-      renderer.setScissorTest(true);
-      renderer.setScissor(
-        Math.floor(bayRect.left * dpr),
-        Math.floor((window.innerHeight - bayRect.top - bayRect.h) * dpr),
-        Math.ceil(bayRect.w * dpr),
-        Math.ceil(bayRect.h * dpr),
-      );
-    }
     renderer.render(scene, camera);
-    renderer.setScissorTest(false);
 
     for (const hook of frameHooks) hook(frame);
   }
@@ -367,7 +350,6 @@ export function createViewer({ canvas, dragSurface, onProgress, onReady, onError
       dragging = false;
       pointerId = null;
       dragSurface.classList.remove('is-dragging');
-      // A press that did not travel is a click on empty space, not an orbit.
       if (moved < 6) api.onBackgroundClick?.();
     };
 
@@ -393,9 +375,9 @@ export function createViewer({ canvas, dragSurface, onProgress, onReady, onError
         meshes.push(o);
         const m = o.material;
         if (!m) return;
-        // The source model marks highlight parts with an amber material. Retint
-        // it to the accent so "this is the part that does the work" reads in the
-        // page's own colour language.
+
+        m.precision = 'mediump';
+
         if (m.name === 'accent_amber') {
           m.color = new Color('#6d3bf5');
           m.emissive = new Color('#2a1266');
@@ -423,7 +405,7 @@ export function createViewer({ canvas, dragSurface, onProgress, onReady, onError
         m.envMapIntensity = 0.85;
       });
 
-      // Recentre on the origin so orbit maths stays simple.
+      // Recentre on the origin
       const box = new Box3().setFromObject(model);
       const centre = box.getCenter(new Vector3());
       model.position.sub(centre);
@@ -437,8 +419,9 @@ export function createViewer({ canvas, dragSurface, onProgress, onReady, onError
 
       rig.target.copy(modelSphere.center);
       goal.target.copy(modelSphere.center);
-      // Start pulled back, so the first frames read as a dolly in rather than a pop.
-      rig.radius = distanceToFit(modelExtent, { w: window.innerWidth * 0.4, h: window.innerHeight * 0.7 }, 1.9);
+
+      const bay = activeBay() || { w: window.innerWidth * 0.45, h: window.innerHeight * 0.75 };
+      rig.radius = distanceToFit(modelExtent, bay, 1.2);
       goal.radius = rig.radius;
 
       onReady?.(api);
@@ -468,7 +451,6 @@ export function createViewer({ canvas, dragSurface, onProgress, onReady, onError
       if (v) start();
     },
 
-    /** Resolve a named node from the glTF graph to a focusable descriptor. */
     resolve(nodeName, view) {
       if (!model) return null;
       const node = model.getObjectByName(nodeName);
@@ -493,7 +475,6 @@ export function createViewer({ canvas, dragSurface, onProgress, onReady, onError
       frameHooks.push(fn);
     },
 
-    /** Current render window in viewport pixels, or null before first frame. */
     get bayRect() {
       return bayRect;
     },
