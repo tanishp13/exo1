@@ -8,9 +8,8 @@
  * client rather than silently pretending to have sent something.
  */
 
-const ENDPOINT = import.meta.env.VITE_FORM_ENDPOINT ?? 'exog8co@gmail.com';
-const FALLBACK_TO = import.meta.env.VITE_CONTACT_EMAIL ?? 'exog8co@gmail.com';
-
+const ENDPOINT = 'https://formspree.io/f/mdeojpry';
+const FALLBACK_TO = 'exog8co@gmail.com';
 const RULES = {
   name: (v) => (v.trim().length >= 2 ? '' : 'Please enter your name.'),
   email: (v) => (/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v.trim()) ? '' : 'Please enter a valid email address.'),
